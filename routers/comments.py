@@ -13,7 +13,7 @@ def create_comment(post_id: int, comment: schemas.CommentCreate, db: Session = D
     db.refresh(db_comment)
     return db_comment
 
-@router.get("/comments/{post_id}", response_model=List[schemas.CommentOut])
+@router.get("/comments/{post_id}", response_model=list[schemas.CommentOut])
 def get_comments(post_id: int, db: Session = Depends(get_db)):
     comments = db.query(models.Comment).filter(models.Comment.post_id == post_id).all()
     return comments

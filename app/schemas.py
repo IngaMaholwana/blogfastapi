@@ -12,7 +12,7 @@ class UserCreate(UserBase):
 class UserOut(UserBase):
     id: int
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PostBase(BaseModel):
     title: str
@@ -26,7 +26,7 @@ class PostOut(PostBase):
     created_at: datetime
     owner: UserOut
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class CommentCreate(BaseModel):
     content: str
@@ -36,4 +36,4 @@ class CommentOut(BaseModel):
     content: str
     author: UserOut
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -6,14 +6,14 @@ from app.dependencies import get_db
 router = APIRouter()
 
 @router.post("/", response_model=schemas.PostOut)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), user_id: int):
+def create_post(user_id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
     db_post = models.Post(**post.dict(), owner_id=user_id)
     db.add(db_post)
     db.commit()
     db.refresh(db_post)
     return db_post
 
-@router.get("/", response_model=List[schemas.PostOut])
+@router.get("/", response_model=list[schemas.PostOut])
 def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     posts = db.query(models.Post).offset(skip).limit(limit).all()
     return posts
