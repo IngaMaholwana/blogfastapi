@@ -9,8 +9,9 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-class UserOut(UserBase):
+class UserOut(BaseModel):
     id: int
+    email: str
     class Config:
         from_attributes = True
 
@@ -21,8 +22,10 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
-class PostOut(PostBase):
+class PostOut(BaseModel):
     id: int
+    title: str
+    content: str
     created_at: datetime
     owner: UserOut
     class Config:

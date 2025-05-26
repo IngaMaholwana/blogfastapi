@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 from app.dependencies import get_db
 
@@ -15,12 +15,12 @@ def create_post(user_id: int, post: schemas.PostCreate, db: Session = Depends(ge
 
 @router.get("/", response_model=list[schemas.PostOut])
 def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    posts = db.query(models.Post).offset(skip).limit(limit).all()
+    posts = db.query(models.Post).options(joinedload(models.Post.owner)).offset(skip).limit(limit).all()
     return posts
 
 @router.get("/{post_id}", response_model=schemas.PostOut)
 def read_post(post_id: int, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    post = db.query(models.Post).options(joinedload(models.Post.owner)).filter(models.Post.id == post_id).first()
     if post is None:
         raise HTTPException(status_code=404, detail="Post not found")
     return post
