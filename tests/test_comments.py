@@ -1,63 +1,79 @@
-from fastapi import FastAPI, Depends, HTTPException
+import unittest
 from sqlalchemy.orm import Session
 from app import models, schemas
-from app.database import get_db
+from app.database import SessionLocal
 
-def test_create_comment(db: Session):
-    # Create a user
-    user = models.User(username="testuser", email="test@example.com", password="hashedpassword")
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+class TestComments(unittest.TestCase):
+    def setUp(self):
+        """
+        Set up a database session for testing.
+        """
+        self.db: Session = SessionLocal()
 
-    # Create a post
-    post = models.Post(title="Test Post", content="This is a test post.", owner_id=user.id)
-    db.add(post)
-    db.commit()
-    db.refresh(post)
+    def tearDown(self):
+        """
+        Close the database session after each test.
+        """
+        self.db.close()
 
-    # Create a comment
-    comment_data = schemas.CommentCreate(content="This is a test comment.")
-    comment = models.Comment(content=comment_data.content, post_id=post.id, author_id=user.id)
-    db.add(comment)
-    db.commit()
-    db.refresh(comment)
+    def test_create_comment(self):
+        # Create a user
+        user = models.User(username="testuser", email="test@example.com", password="hashedpassword")
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
 
-    assert comment.content == comment_data.content
-    assert comment.post_id == post.id
-    assert comment.author_id == user.id
+        # Create a post
+        post = models.Post(title="Test Post", content="This is a test post.", owner_id=user.id)
+        self.db.add(post)
+        self.db.commit()
+        self.db.refresh(post)
 
-def test_get_comments(db: Session):
-    # Assuming a comment already exists
-    comment = db.query(models.Comment).first()
-    assert comment is not None
+        # Create a comment
+        comment_data = schemas.CommentCreate(content="This is a test comment.")
+        comment = models.Comment(content=comment_data.content, post_id=post.id, author_id=user.id)
+        self.db.add(comment)
+        self.db.commit()
+        self.db.refresh(comment)
 
-    # Retrieve comments for a specific post
-    comments = db.query(models.Comment).filter(models.Comment.post_id == comment.post_id).all()
-    assert len(comments) > 0
+        self.assertEqual(comment.content, comment_data.content)
+        self.assertEqual(comment.post_id, post.id)
+        self.assertEqual(comment.author_id, user.id)
 
-def test_delete_comment(db: Session):
-    # Create a user and a post
-    user = models.User(username="testuser", email="test@example.com", password="hashedpassword")
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    def test_get_comments(self):
+        # Assuming a comment already exists
+        comment = self.db.query(models.Comment).first()
+        self.assertIsNotNone(comment)
 
-    post = models.Post(title="Test Post", content="This is a test post.", owner_id=user.id)
-    db.add(post)
-    db.commit()
-    db.refresh(post)
+        # Retrieve comments for a specific post
+        comments = self.db.query(models.Comment).filter(models.Comment.post_id == comment.post_id).all()
+        self.assertGreater(len(comments), 0)
 
-    # Create a comment
-    comment = models.Comment(content="This is a test comment.", post_id=post.id, author_id=user.id)
-    db.add(comment)
-    db.commit()
-    db.refresh(comment)
+    def test_delete_comment(self):
+        # Create a user and a post
+        user = models.User(username="testuser", email="test@example.com", password="hashedpassword")
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
 
-    # Delete the comment
-    db.delete(comment)
-    db.commit()
+        post = models.Post(title="Test Post", content="This is a test post.", owner_id=user.id)
+        self.db.add(post)
+        self.db.commit()
+        self.db.refresh(post)
 
-    # Verify the comment is deleted
-    deleted_comment = db.query(models.Comment).filter(models.Comment.id == comment.id).first()
-    assert deleted_comment is None
+        # Create a comment
+        comment = models.Comment(content="This is a test comment.", post_id=post.id, author_id=user.id)
+        self.db.add(comment)
+        self.db.commit()
+        self.db.refresh(comment)
+
+        # Delete the comment
+        self.db.delete(comment)
+        self.db.commit()
+
+        # Verify the comment is deleted
+        deleted_comment = self.db.query(models.Comment).filter(models.Comment.id == comment.id).first()
+        self.assertIsNone(deleted_comment)
+
+if __name__ == "__main__":
+    unittest.main()
