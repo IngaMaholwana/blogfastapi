@@ -2,7 +2,7 @@ import unittest
 from sqlalchemy.orm import Session
 from app.models import Post
 from app.schemas import PostCreate
-from app.routers.posts import create_post, read_post, update_post, delete_post, search_posts
+from routers.posts import create_post, read_post, update_post, delete_post, search_posts
 from app.database import SessionLocal
 
 class TestPosts(unittest.TestCase):

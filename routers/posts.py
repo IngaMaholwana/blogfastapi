@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session, joinedload
 from app import models, schemas
 from app.dependencies import get_db
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts",
+    tags=["Posts"]
+)
 
 @router.post("/", response_model=schemas.PostOut)
 def create_post(user_id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):

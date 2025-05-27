@@ -18,23 +18,20 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict):
     """
-    Generate a JSON Web Token (JWT) for user authentication.
+    Generate a JSON Web Token (JWT) for user authentication without expiration.
 
     Args:
         data (dict): The data to encode in the token (e.g., user information).
-        expires_delta (timedelta, optional): The token's expiration time. Defaults to 15 minutes.
 
     Returns:
         str: The encoded JWT token.
 
-    This function creates a JWT token by encoding the provided data along with an expiration time.
+    This function creates a JWT token by encoding the provided data without an expiration time.
     The token is signed using the SECRET_KEY and ALGORITHM defined in the configuration.
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
-    to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -75,15 +72,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     Raises:
         HTTPException: If the username or password is incorrect.
-
-    This function verifies the user's credentials by checking the username and password
-    against the database. If valid, it generates a JWT access token for the user.
     """
     user = db.query(models.User).filter(models.User.username == form_data.username).first()
     if not user or not pwd_context.verify(form_data.password, user.password):
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(
-        data={"sub": user.username},
-        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
